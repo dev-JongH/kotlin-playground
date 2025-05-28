@@ -1,5 +1,6 @@
 package standard
 
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 class PropertyDelegator<T>(private var value: T) {
@@ -23,6 +24,16 @@ class DelegatorProvider<T>(private var value: T) {
         thisRef: Any?,
         property: KProperty<*>
     ): PropertyDelegator<T> = PropertyDelegator(value)
+}
+
+abstract class PreferenceHolder {
+    operator fun Boolean.provideDelegate(thisRef: Any?, property: KProperty<*>) = bind(this)
+
+    inline fun <reified T: Any> bind(default: T): ReadWriteProperty<PreferenceHolder, T> = TODO()
+}
+
+object Preference: PreferenceHolder() {
+    var showLoadingDialog by bind(this)
 }
 
 fun main() {
