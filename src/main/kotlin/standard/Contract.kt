@@ -46,15 +46,3 @@ suspend fun measureCoroutineDuration(
     }
     return measureTimeMillis { block() }.milliseconds
 }
-
-@OptIn(ExperimentalContracts::class)
-suspend fun <T> measureCoroutineTimedValue(
-    block: suspend () -> T
-): TimedValue<T> {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-    var value: T
-    val duration = measureCoroutineDuration { value = block() }
-    return TimedValue(value, duration)
-}
