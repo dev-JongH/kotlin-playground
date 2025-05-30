@@ -1,7 +1,15 @@
 package standard
 
 import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
+import kotlin.system.measureTimeMillis
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimedValue
 
 
 fun printEach(input: List<String>?) {
@@ -26,6 +34,27 @@ fun UiState.isLoading(): Boolean {
     contract {
         returns(true) implies (this@isLoading is UiState.Loading)
     }
-
     return this is UiState.Loading && this.progress > 0.0
+}
+
+@OptIn(ExperimentalContracts::class)
+suspend fun measureCoroutineDuration(
+    block: suspend () -> Unit
+): Duration {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    return measureTimeMillis { block() }.milliseconds
+}
+
+@OptIn(ExperimentalContracts::class)
+suspend fun <T> measureCoroutineTimedValue(
+    block: suspend () -> T
+): TimedValue<T> {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    var value: T
+    val duration = measureCoroutineDuration { value = block() }
+    return TimedValue(value, duration)
 }
